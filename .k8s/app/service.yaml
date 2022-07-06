@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: team-management
+  labels:
+    app: team-management
+spec:
+  selector:
+    app: team-management
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080

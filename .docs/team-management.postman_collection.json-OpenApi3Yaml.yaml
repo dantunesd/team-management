@@ -1,0 +1,215 @@
+openapi: 3.0.0
+info:
+  title: team-management
+  contact: {}
+  version: '1.0'
+servers:
+- url: http://localhost:8080
+  variables: {}
+paths:
+  /members:
+    post:
+      tags:
+      - Misc
+      summary: create a member
+      operationId: createamember
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createamembersrequest'
+            example:
+              name: my name
+              type: employee
+              type_data:
+                role: software engineer
+              tags:
+              - backend
+              - golang
+              - k8s
+        required: true
+      responses:
+        '200':
+          description: ''
+          headers: {}
+      deprecated: false
+    get:
+      tags:
+      - Misc
+      summary: get members
+      operationId: getmembers
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: Filter members by name
+        - in: query
+          name: type
+          schema:
+            type: string
+          description: Filter members by type (employee or contractor)
+        - in: query
+          name: tags
+          schema:
+            type: string
+          description: Filter members by tag
+      responses:
+        '200':
+          description: ''
+          headers: {}
+      deprecated: false
+  /members/{id}:
+    get:
+      tags:
+      - Misc
+      summary: get a member by id
+      operationId: getamemberbyid
+      parameters:
+      - name: id
+        in: path
+        description: The member id generated while creating one
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: ''
+      responses:
+        '200':
+          description: ''
+          headers: {}
+      deprecated: false
+    put:
+      tags:
+      - Misc
+      summary: update a member by id
+      operationId: updateamemberbyid
+      parameters:
+      - name: id
+        in: path
+        description: The member id generated while creating one
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: ''
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateamemberbyidrequest'
+            example:
+              name: my name
+              type: contractor
+              type_data:
+                contract_duration: 10
+              tags:
+              - backend
+              - golang
+              - k8s
+        required: true
+      responses:
+        '200':
+          description: ''
+          headers: {}
+      deprecated: false
+    delete:
+      tags:
+      - Misc
+      summary: delete a member by id
+      operationId: deleteamemberbyid
+      parameters:
+      - name: id
+        in: path
+        description: The member id generated while creating one
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: ''
+      responses:
+        '200':
+          description: ''
+          headers: {}
+      deprecated: false
+components:
+  schemas:
+    createamembersrequest:
+      title: createamembersrequest
+      required:
+      - name
+      - type
+      - type_data
+      type: object
+      properties:
+        name:
+          type: string
+          description: The member name
+        type:
+          type: string
+          description: Should be either 'employee' or 'contractor'
+        type_data:
+          $ref: '#/components/schemas/TypeData'
+        tags:
+          type: array
+          items:
+            type: string
+          description: 'A list of string tags'
+      example:
+        name: my name
+        type: employee
+        type_data:
+          role: software engineer
+        tags:
+        - backend
+        - golang
+        - k8s
+    TypeData:
+      title: TypeData
+      description: If field type is "employee", then field "role" is "required", otherwise, "contract_duration" is "required"
+      required:
+      - role
+      - contract_duration
+      type: object
+      properties:
+        role:
+          type: string
+        contract_duration:
+          type: integer
+      example:
+        role: software engineer
+        contract_duration: 10
+    updateamemberbyidrequest:
+      title: updateamemberbyidrequest
+      required:
+      - name
+      - type
+      - type_data
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        type_data:
+          $ref: '#/components/schemas/TypeData'
+        tags:
+          type: array
+          items:
+            type: string
+          description: 'A list of string tags'
+      example:
+        name: my name
+        type: contractor
+        type_data:
+          contract_duration: 10
+        tags:
+        - backend
+        - golang
+        - k8s
+tags:
+- name: Misc
+  description: ''

@@ -1,0 +1,182 @@
+{
+	"info": {
+		"_postman_id": "2ad6b3b7-d924-4d19-9f87-2a93e1ade79c",
+		"name": "team-management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "create a members",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"my name\",\n    \"type\": \"employee\",\n    \"type_data\": {\n        \"role\": \"software engineer\"\n    },\n    \"tags\": [\n        \"backend\",\n        \"golang\",\n        \"k8s\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/members",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all members",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/members",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get a member by id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/members/:id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": null,
+							"description": "The member id generated while creating one"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "filter members",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/members?tags=backend&name=my name&type=employee",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members"
+					],
+					"query": [
+						{
+							"key": "tags",
+							"value": "backend",
+							"description": "The member tagged. Ex: backend, frontend, etc"
+						},
+						{
+							"key": "name",
+							"value": "my name",
+							"description": "The member name."
+						},
+						{
+							"key": "type",
+							"value": "employee",
+							"description": "The member type: Employee or Contractor"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update a member by id",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"my name\",\n    \"type\": \"contractor\",\n    \"type_data\": { \n        \"contract_duration\": 10\n    },\n    \"tags\": [\n        \"backend\",\n        \"golang\",\n        \"k8s\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/members/:id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": null,
+							"description": "The member id generated while creating one"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete a member by id",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/members/:id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": null,
+							"description": "The member id generated while creating one"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
