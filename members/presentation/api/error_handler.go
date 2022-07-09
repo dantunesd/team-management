@@ -8,13 +8,17 @@ import (
 	"github.com/google/jsonapi"
 )
 
+type Logger interface {
+	Error(args ...interface{})
+}
+
 type CustomHandler func(w http.ResponseWriter, r *http.Request) error
 
 type ErrorHandler struct {
-	logger utils.Logger
+	logger Logger
 }
 
-func NewErrorHandler(logger utils.Logger) *ErrorHandler {
+func NewErrorHandler(logger Logger) *ErrorHandler {
 	return &ErrorHandler{
 		logger: logger,
 	}

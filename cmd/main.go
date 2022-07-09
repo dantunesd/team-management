@@ -5,20 +5,26 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"team-management/members/api"
-	"team-management/members/infra"
-	"team-management/members/repository"
+	teammanagement "team-management"
+	"team-management/members/infrastructure/logger"
+	"team-management/members/infrastructure/mongodb"
+	"team-management/members/infrastructure/repository"
+	"team-management/members/infrastructure/validator"
+	"team-management/members/presentation/api"
 	"team-management/members/usecase"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	logger := infra.NewLoggerAdapter()
+	logger := logger.NewLogrusAdapter()
 
-	config, err := infra.NewConfig()
+	config, err := teammanagement.NewConfig()
 	if err != nil {
 		logger.Error("Failed to load .env file. Create one or set environment variables - ", err.Error())
 	}
@@ -37,30 +43,38 @@ func main() {
 		os.Exit(1)
 	}
 
-	membersDBclient := infra.NewMongoDBAdapter(mongoClient, config.MongoDBDatabaseName, config.MongoDBCollectionName)
+	membersDBclient := mongodb.NewMongoDBAdapter(mongoClient, config.MongoDBDatabaseName, config.MongoDBCollectionName)
 	membersRepository := repository.NewMembersRepository(membersDBclient)
-	validator := infra.NewValidatorAdapter()
+	validator := validator.NewValidatorAdapter()
 
-	createMemberUseCase := usecase.NewCreateMember(membersRepository)
 	getMemberUseCase := usecase.NewGetMember(membersRepository)
+	createMemberUseCase := usecase.NewCreateMember(membersRepository)
 	filterMemberUseCase := usecase.NewFilterMember(membersRepository)
 	updateMemberUseCase := usecase.NewUpdateMember(membersRepository)
 	deleteMemberUseCase := usecase.NewDeleteMember(membersRepository)
 
-	handlers := &api.Handlers{
-		ErrorHandler: api.NewErrorHandler(logger),
-		CreateMember: api.NewCreateMember(createMemberUseCase, validator),
-		GetMember:    api.NewGetMember(getMemberUseCase),
-		FilterMember: api.NewFilterMember(filterMemberUseCase),
-		UpdateMember: api.NewUpdateMember(updateMemberUseCase, validator),
-		DeleteMember: api.NewDeleteMember(deleteMemberUseCase),
-	}
+	errorHandler := api.NewErrorHandler(logger)
+	getMemberHandler := api.NewGetMember(getMemberUseCase)
+	createMemberHandler := api.NewCreateMember(createMemberUseCase, validator)
+	filterMemberHandler := api.NewFilterMember(filterMemberUseCase)
+	updateMemberHandler := api.NewUpdateMember(updateMemberUseCase, validator)
+	deleteMemberHandler := api.NewDeleteMember(deleteMemberUseCase)
 
-	router := api.NewRouter(handlers)
-	handler := router.Register(logger)
+	router := chi.NewRouter()
+	router.Use(middleware.Recoverer)
+	router.Use(cors.AllowAll().Handler)
+	router.Use(middleware.RequestLogger(&middleware.DefaultLogFormatter{Logger: logger, NoColor: true}))
+
+	router.Route("/members", func(c chi.Router) {
+		c.Get("/", errorHandler.Handle(filterMemberHandler.Handle))
+		c.Post("/", errorHandler.Handle(createMemberHandler.Handle))
+		c.Get("/{id}", errorHandler.Handle(getMemberHandler.Handle))
+		c.Put("/{id}", errorHandler.Handle(updateMemberHandler.Handle))
+		c.Delete("/{id}", errorHandler.Handle(deleteMemberHandler.Handle))
+	})
 
 	logger.Info(fmt.Sprintf("starting %s webserver", config.AppName))
-	if err := http.ListenAndServe(config.AppPort, handler); err != nil {
+	if err := http.ListenAndServe(config.AppPort, router); err != nil {
 		logger.Error(err)
 	}
 }

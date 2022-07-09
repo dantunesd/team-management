@@ -6,39 +6,45 @@ import (
 	"team-management/members/usecase"
 	"team-management/members/utils"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/jsonapi"
 )
 
-type CreateMemberUseCase interface {
-	Handle(input *usecase.CreateMemberInput) (*usecase.CreateMemberOutput, error)
+type UpdateMemberUseCase interface {
+	Handle(id string, input *usecase.UpdateMemberInput) (*usecase.UpdateMemberOutput, error)
 }
 
-type CreateMember struct {
-	usecase   CreateMemberUseCase
-	validator utils.Validator
+type UpdateMember struct {
+	usecase   UpdateMemberUseCase
+	validator Validator
 }
 
-func NewCreateMember(usecase CreateMemberUseCase, validator utils.Validator) *CreateMember {
-	return &CreateMember{
+func NewUpdateMember(usecase UpdateMemberUseCase, validator Validator) *UpdateMember {
+	return &UpdateMember{
 		usecase:   usecase,
 		validator: validator,
 	}
 }
 
-type CreateMemberRequest struct {
+type UpdateMemberRequest struct {
 	Name     string          `json:"name" validate:"required"`
 	Type     string          `json:"type" validate:"required,oneof='employee' 'contractor'"`
 	TypeData json.RawMessage `json:"type_data" validate:"required"`
 	Tags     []string        `json:"tags"`
 }
 
-type CreateMemberResponse struct {
+type UpdateMemberResponse struct {
 	ID        string `jsonapi:"primary,members"`
-	CreatedAt string `jsonapi:"attr,created_at"`
+	UpdatedAt string `jsonapi:"attr,updated_at"`
 }
 
-func (c *CreateMember) Handle(w http.ResponseWriter, r *http.Request) error {
-	var request CreateMemberRequest
+func (c *UpdateMember) Handle(w http.ResponseWriter, r *http.Request) error {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		return utils.NewBadRequest("The id is missing")
+	}
+
+	var request UpdateMemberRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return utils.NewBadRequest("Invalid json payload")
 	}
@@ -47,22 +53,22 @@ func (c *CreateMember) Handle(w http.ResponseWriter, r *http.Request) error {
 		return utils.NewBadRequest(err.Error())
 	}
 
-	input := &usecase.CreateMemberInput{
+	input := &usecase.UpdateMemberInput{
 		Name:     request.Name,
 		Type:     request.Type,
 		TypeData: request.TypeData,
 		Tags:     request.Tags,
 	}
 
-	output, err := c.usecase.Handle(input)
+	output, err := c.usecase.Handle(id, input)
 	if err != nil {
 		return err
 	}
 
 	w.Header().Add("content-type", jsonapi.MediaType)
-	w.WriteHeader(201)
-	return jsonapi.MarshalPayload(w, &CreateMemberResponse{
-		ID:        output.ID,
-		CreatedAt: output.CreatedAt,
+	w.WriteHeader(200)
+	return jsonapi.MarshalPayload(w, &UpdateMemberResponse{
+		ID:        id,
+		UpdatedAt: output.UpdatedAt,
 	})
 }
